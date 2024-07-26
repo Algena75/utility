@@ -1,7 +1,8 @@
 from decimal import Decimal
+
 from rest_framework import serializers
 
-from apartments.models import Apartment, Building, Counter, Period
+from apartments.models import Apartment, Building, Counter
 
 
 class CounterSerializer(serializers.ModelSerializer):
@@ -68,7 +69,7 @@ class HouseWriteSerializer(serializers.ModelSerializer):
                 current_apartment = Apartment.objects.create(
                     building=house,
                     number=apartment.get('number'),
-                    square = Decimal(apartment.get('square'))
+                    square=Decimal(apartment.get('square'))
                 )
             if counters:
                 for counter in counters:
