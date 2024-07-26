@@ -1,6 +1,8 @@
 import os
 from pathlib import Path
 
+from backend.constants import constants
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -123,6 +125,8 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.AllowAny',
     ],
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': constants.PAGE_SIZE,
 }
 
 CELERY_BROKER_URL = os.environ.get("BROKER_URL", "redis://localhost:6379/0")
