@@ -117,4 +117,4 @@ poetry env list
     ```bash
     celery -A backend worker --loglevel=info --concurrency 1 -E
     ```
-    открыть в браузере http://127.0.0.1:8000/api/docs
+    открыть в браузере http://127.0.0.1:8000/api/houses
