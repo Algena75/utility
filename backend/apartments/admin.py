@@ -51,7 +51,7 @@ class CounterValueAdmin(admin.ModelAdmin):
 
 
 class TariffAdmin(admin.ModelAdmin):
-    pass
+    list_display = ('name', 'value', 'from_date', 'until_date', 'is_current')
 
 
 class BillAdmin(admin.ModelAdmin):

@@ -1,3 +1,5 @@
+from datetime import date
+
 from django.shortcuts import get_object_or_404
 
 from apartments.models import Apartment, Period, CounterValue
@@ -8,9 +10,13 @@ from bills.models import Bill, Tariff
 def calculate_bill(apartment_id, month, year):
     period, _ = Period.objects.get_or_create(month=month, year=year)
     apartment = get_object_or_404(Apartment, pk=apartment_id)
-    water_tariff = Tariff.objects.filter(name='WA').last().value
-    cp_tariff = Tariff.objects.filter(name='CP').last().value
-    counters = apartment.counters.all()  # Counter.objects.filter(apartment__id=apartment_id)
+    water_tariff = Tariff.objects.filter(
+        name='WA', from_date__lte=date(year, month, 1)
+    ).order_by('from_date').last().value
+    cp_tariff = Tariff.objects.filter(
+        name='CP', from_date__lte=date(year, month, 1)
+    ).order_by('from_date').last().value
+    counters = apartment.counters.all()
     water_difference = 0
     for counter in counters:
         counter_values = CounterValue.objects.filter(
