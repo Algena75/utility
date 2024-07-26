@@ -1,7 +1,9 @@
-from django.db import models
 from datetime import datetime
 
+from django.db import models
+
 from apartments.models import Apartment, Period
+
 
 class Tariff(models.Model):
     WATER = 'WA'

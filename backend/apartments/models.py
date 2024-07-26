@@ -27,7 +27,7 @@ class Building(models.Model):
         if self.bld_number:
             address += f', корп.{self.bld_number}'
         return address
-    
+
     class Meta:
         constraints = [
             models.UniqueConstraint(
@@ -39,7 +39,7 @@ class Building(models.Model):
                 name='house_number_gt_0'
             ),
             models.CheckConstraint(
-                check=models.Q(bld_number__range=(1,20)),
+                check=models.Q(bld_number__range=(1, 20)),
                 name='bld_number_gte_1_lte_20'
             ),
         ]
@@ -106,7 +106,7 @@ class Period(models.Model):
 
     def __str__(self) -> str:
         return f'{self.month}-{self.year}'
-    
+
     class Meta:
         constraints = [
             models.UniqueConstraint(
@@ -114,7 +114,7 @@ class Period(models.Model):
                 name='unique_month_year'
             ),
             models.CheckConstraint(
-                check=models.Q(month__range=(1,12)),
+                check=models.Q(month__range=(1, 12)),
                 name='month_gte_1_gle_12'
             ),
         ]

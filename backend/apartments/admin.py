@@ -1,6 +1,7 @@
 from django.contrib import admin
 
-from apartments.models import Apartment, Building, Counter, Period, CounterValue
+from apartments.models import (Apartment, Building, Counter, CounterValue,
+                               Period)
 from bills.models import Bill, Tariff
 
 
@@ -54,7 +55,9 @@ class TariffAdmin(admin.ModelAdmin):
 
 
 class BillAdmin(admin.ModelAdmin):
-    list_display = ('apartment', 'period', 'water', 'community_property', 'total')
+    list_display = ('apartment', 'period', 'water', 'community_property',
+                    'total')
+
 
 admin.site.register(Building, BuildingAdmin)
 admin.site.register(Apartment, ApartmentAdmin)

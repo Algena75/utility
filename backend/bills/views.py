@@ -1,16 +1,16 @@
-from rest_framework import status, viewsets
+from django.db import transaction
+from django.forms.models import model_to_dict
+from django.shortcuts import get_object_or_404
+from rest_framework import status
+from rest_framework.response import Response
 from rest_framework.serializers import ValidationError
 from rest_framework.views import APIView
-from rest_framework.response import Response
-
-from django.shortcuts import get_object_or_404
-from django.forms.models import model_to_dict
 
 from apartments.models import Building
-from bills.models import Bill, Tariff
-from bills.serializers import BuildingBillSerializer, BillSerializer
-from bills.services import calculate_bill
+from bills.serializers import BuildingBillSerializer
+from bills.tasks import calculate_bills
 from bills.validators import validate_period
+
 
 class BillCalculationView(APIView):
     serializer_class = BuildingBillSerializer
@@ -19,24 +19,29 @@ class BillCalculationView(APIView):
         house = get_object_or_404(Building, pk=kwargs.get('house_nr'))
         month, year = validate_period(kwargs.get('month_nr'), kwargs.get('year_nr'))
         apartments = house.apartments.all()
-        print('apartments>>>', apartments)
         data = dict(address=str(house), period=f'{month}.{year}')
         bills = list()
         for apartment in apartments:
             bill = apartment.bills.filter(period__month=month, period__year=year).first()
             if not bill:
                 raise ValidationError(f'Счета для квартиры {apartment} не найдены!')
-            print('bill>>>', bill)
-            print('bill>>>', model_to_dict(bill, fields=['water', 'community_property', 'total', 'apartment']))
             bills.append(model_to_dict(bill, fields=['water', 'community_property', 'total', 'apartment']))
         data.update(bills=bills)
         serializer = BuildingBillSerializer(data=data)
         return Response(serializer.initial_data, status=status.HTTP_200_OK)
-    
+
     def post(self, request, *args, **kwargs):
         house = get_object_or_404(Building, pk=kwargs.get('house_nr'))
         month, year = validate_period(kwargs.get('month_nr'), kwargs.get('year_nr'))
         apartments = house.apartments.all()
         for apartment in apartments:
-            calculate_bill(apartment.id, month, year)
-        return Response(f'Счета по дому {house} за {month}.{year} сформированы', status.HTTP_200_OK)
+            try:
+                with transaction.atomic():
+                    job_params = dict(apartment_id=apartment.id,
+                                      month=month,
+                                      year=year)
+                    transaction.on_commit(lambda: calculate_bills.delay(job_params))
+            except Exception as e:
+                raise ValidationError(str(e))
+            message = f'Задача по расчёту счетов для дома {house} за {month}.{year} сформирована'
+        return Response(message, status.HTTP_200_OK)
