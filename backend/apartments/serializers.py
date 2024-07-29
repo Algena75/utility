@@ -21,7 +21,7 @@ class ApartmentSerializer(serializers.ModelSerializer):
 
 
 class ApartmentWriteSerializer(serializers.ModelSerializer):
-    counters = CounterSerializer(many=True)
+    counters = CounterSerializer(many=True, required=False)
     # square = serializers.DecimalField(max_digits=8, decimal_places=3)
 
     class Meta:
@@ -45,32 +45,34 @@ class HouseSerializer(serializers.ModelSerializer):
 
 
 class HouseWriteSerializer(serializers.ModelSerializer):
-    apartments = ApartmentWriteSerializer(many=True)
+    apartments = ApartmentWriteSerializer(many=True, required=False)
 
     class Meta:
         model = Building
         fields = ('street', 'house_number', 'bld_number', 'apartments')
 
     def create(self, validated_data):
-        if 'apartments' not in self.initial_data:
-            house = Building.objects.create(**validated_data)
-            return house
-        apartments = validated_data.pop('apartments')
+        apartments = counters = []
+        if 'apartments' in self.validated_data:
+            apartments = validated_data.pop('apartments')
+
         house, _ = Building.objects.get_or_create(**validated_data)
-        for apartment in apartments:
-            counters = apartment.pop('counters')
-            current_apartment = Apartment.objects.filter(
-                building=house,
-                number=apartment.get('number')
-            ).first()
-            if not current_apartment:
-                current_apartment = Apartment.objects.create(
+        if apartments:
+            for apartment in apartments:
+                if 'counters' in apartment:
+                    counters = apartment.pop('counters')
+                current_apartment = Apartment.objects.filter(
                     building=house,
-                    number=apartment.get('number'),
-                    square=Decimal(apartment.get('square'))
-                )
-            if counters:
-                for counter in counters:
-                    Counter.objects.create(number=counter.popitem(True)[1],
-                                           apartment=current_apartment)
+                    number=apartment.get('number')
+                ).first()
+                if not current_apartment:
+                    current_apartment = Apartment.objects.create(
+                        building=house,
+                        number=apartment.get('number'),
+                        square=Decimal(apartment.get('square'))
+                    )
+                if counters:
+                    for counter in counters:
+                        Counter.objects.create(number=counter.popitem(True)[1],
+                                               apartment=current_apartment)
         return house
