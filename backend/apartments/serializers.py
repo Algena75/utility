@@ -52,8 +52,6 @@ class HouseWriteSerializer(serializers.ModelSerializer):
         fields = ('street', 'house_number', 'bld_number', 'apartments')
 
     def create(self, validated_data):
-        print('initial data: ', self.initial_data)
-        print('validated data: ', validated_data)
         if 'apartments' not in self.initial_data:
             house = Building.objects.create(**validated_data)
             return house
