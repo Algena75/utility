@@ -43,6 +43,7 @@ class Building(models.Model):
                 name='bld_number_gte_1_lte_20'
             ),
         ]
+        ordering = ('street', 'house_number', 'bld_number')
 
 
 class Apartment(models.Model):
@@ -74,6 +75,7 @@ class Apartment(models.Model):
                 name='unique_apartment_for_building'
             )
         ]
+        ordering = ('number',)
 
 
 class Counter(models.Model):
@@ -93,6 +95,9 @@ class Counter(models.Model):
 
     def __str__(self) -> str:
         return self.number
+
+    class Meta:
+        ordering = ('number',)
 
 
 class Period(models.Model):
