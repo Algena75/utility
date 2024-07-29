@@ -55,7 +55,7 @@ class HouseWriteSerializer(serializers.ModelSerializer):
         apartments = counters = []
         if 'apartments' in self.validated_data:
             apartments = validated_data.pop('apartments')
-        
+
         house, _ = Building.objects.get_or_create(**validated_data)
         if apartments:
             for apartment in apartments:
