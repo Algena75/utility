@@ -2,12 +2,12 @@ import pytest
 
 test_data = {
     "street": "Onemore str.", 
-    "house_number": "1", 
-    "bld_number": "1", 
+    "house_number": 1, 
+    "bld_number": 1, 
     "apartments": [
         {
             "number": 1, 
-            "square": "36.000", 
+            "square": 36.000, 
             "counters": [
                 {
                     "number": "00002"
