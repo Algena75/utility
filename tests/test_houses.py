@@ -1,13 +1,14 @@
 from http import HTTPStatus
 
 import pytest
-from django.shortcuts import get_object_or_404
+from rest_framework.test import APITestCase
 
-from apartments.models import Building
+from apartments.models import Building, Counter
+from .fixtures.fixture_data import test_data
 
 
 @pytest.mark.django_db(transaction=True)
-class TestBuildingAPI:
+class TestPytestAPI:
 
     def test_list_building(self, client, building):
         """
@@ -61,3 +62,27 @@ class TestBuildingAPI:
         message = (f'Задача по расчёту счетов для дома {building} за '
                    f'{period.month}.{period.year} сформирована')
         assert message in str(response.data)
+
+
+@pytest.mark.django_db(transaction=True)
+class TestAPITestCaseAPI(APITestCase):
+    def setUp(self):
+        self.test_data = test_data
+
+    def test_new_building_same_data(self):
+        """
+        POST-запрос с повторными данными на `/api/houses/` не создаёт новую
+        запись в БД.
+        """
+        qty_before = Building.objects.all().count()
+
+        response = self.client.post('/api/houses/', data=self.test_data, format='json')
+        assert response.status_code == HTTPStatus.CREATED
+        qty_after = Building.objects.all().count()
+        assert qty_after == qty_before + 1
+
+        response_2 = self.client.post('/api/houses/', data=self.test_data, format='json')
+        assert response_2.status_code == HTTPStatus.BAD_REQUEST
+        qty_after_2 = Building.objects.all().count()
+        assert qty_after_2 == qty_after
+        assert 'counter with this № счётчика already exists.' in str(response_2.data)
